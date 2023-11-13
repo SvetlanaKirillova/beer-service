@@ -24,6 +24,16 @@ public class BeerController {
     @Autowired
     BeerService beerService;
 
+    @GetMapping("beer/{beerId}")
+    ResponseEntity<BeerDto> getBeerById(@PathVariable UUID beerId,
+                                        @RequestParam(value = "showInventoryOnHands", required = false) Boolean showInventoryOnHand){
+        if (showInventoryOnHand == null){
+            showInventoryOnHand = false;
+        }
+
+        return new ResponseEntity<>(beerService.getBeerById(beerId, showInventoryOnHand), HttpStatus.OK);
+    }
+
     @GetMapping(produces = {"application/json"}, path = "beer")
     ResponseEntity<BeerPagedList> getBeerList(@RequestParam(value = "pageNumber", required = false) Integer pageNumber,
                                               @RequestParam(value = "pageSize", required = false) Integer pageSize,
@@ -46,11 +56,6 @@ public class BeerController {
                                                             PageRequest.of(pageNumber, pageSize),
                                                             showInventoryOnHand);
         return new ResponseEntity<>(beerPagedList, HttpStatus.OK);
-    }
-
-    @GetMapping("beer/{beerId}")
-    ResponseEntity<BeerDto> getBeerById(@PathVariable UUID beerId){
-        return new ResponseEntity<>(beerService.getBeerById(beerId), HttpStatus.OK);
     }
 
     @GetMapping("beerUpc/{upc}")

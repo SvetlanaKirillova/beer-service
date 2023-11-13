@@ -21,23 +21,24 @@ import java.util.UUID;
 public class BeerInventoryServiceRestImpl implements BeerInventoryService {
     public static final String INVENTORY_PATH = "/api/v1/beer/{beerId}/inventory";
     private final RestTemplate restTemplate;
-
-    private String beerInventoryServiceHost;
+    private final String beerInventoryServiceHost;
 
     public BeerInventoryServiceRestImpl(RestTemplateBuilder restTemplateBuilder,
+                                        @Value("${beer-inventory-service-host}") String beerInventoryServiceHost,
                                         @Value("${inventory-service.login}") String inventoryUser,
                                         @Value("${inventory-service.password}") String password) {
+        this.beerInventoryServiceHost = beerInventoryServiceHost;
         this.restTemplate = restTemplateBuilder.basicAuthentication(inventoryUser, password).build();
     }
 
-    public void setBeerInventoryServiceHost(String beerInventoryServiceHost) {
-        this.beerInventoryServiceHost = beerInventoryServiceHost;
-    }
+//    public void setBeerInventoryServiceHost(String beerInventoryServiceHost) {
+//        this.beerInventoryServiceHost = beerInventoryServiceHost;
+//    }
 
     @Override
     public Integer getOnHandInventory(UUID beerId) {
-        log.info("Calling Inventory Service...");
-        ResponseEntity<List<BeerInventoryDto>> responseEntity = restTemplate.exchange(
+        log.info("Calling Inventory Service..." + beerInventoryServiceHost);
+        ResponseEntity<List<BeerInventoryDto>> responseEntity =  restTemplate.exchange(
                 beerInventoryServiceHost + INVENTORY_PATH, HttpMethod.GET, null,
                 new ParameterizedTypeReference<List<BeerInventoryDto>>(){},
                 (Object) beerId

@@ -7,7 +7,6 @@ import kz.fotya.beerservice.web.mappers.BeerMapper;
 import kz.fotya.beerservice.web.model.BeerDto;
 import kz.fotya.beerservice.web.model.BeerPagedList;
 import kz.fotya.beerservice.web.model.BeerStyle;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,23 +17,35 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @Service
 public class BeerServiceImpl implements BeerService {
 
     private final BeerRepository beerRepository;
     private final BeerMapper beerMapper;
-    private BeerInventoryService beerInventoryService;
+    private final BeerInventoryService beerInventoryService;
 
+    @Autowired
+    public BeerServiceImpl(BeerRepository beerRepository, BeerMapper beerMapper, BeerInventoryService beerInventoryService) {
+        this.beerRepository = beerRepository;
+        this.beerMapper = beerMapper;
+        this.beerInventoryService = beerInventoryService;
+    }
 
 //    public BeerServiceImpl(BeerInventoryService beerInventoryService) {
 //        this.beerInventoryService = beerInventoryService;
 //    }
 
     @Override
-    public BeerDto getBeerById(UUID beerId) {
+    public BeerDto getBeerById(UUID beerId, Boolean showInventoryOnHand) {
+        BeerDto beerDto = beerMapper.beerDtoFromBeer(beerRepository.findById(beerId).orElseThrow());
 
-        return beerMapper.beerDtoFromBeer(beerRepository.findById(beerId).orElseThrow());
+        if (showInventoryOnHand){
+            beerDto.setQuantityOnHand(beerInventoryService.getOnHandInventory(beerId));
+        }
+
+        return beerDto;
+
     }
 
     @Override
@@ -57,18 +68,25 @@ public class BeerServiceImpl implements BeerService {
             beerPage = beerRepository.findAll(pageRequest);
         }
 
-//        .forEach(beerDto ->  beerDto.setQuantityOnHand(beerInventoryService.getOnHandInventory(beerDto.getId())))
         List<BeerDto> listOfBeersDto = beerPage.getContent()
                 .stream()
                 .map(beerMapper::beerDtoFromBeer)
                 .collect(Collectors.toList());
-        listOfBeersDto.forEach(beerDto ->  beerDto.setQuantityOnHand(
-                beerInventoryService.getOnHandInventory(beerDto.getId())
-                ));
+
+        System.out.println("LIST OF BEER DTOs: " + listOfBeersDto);
+        listOfBeersDto.forEach(beerDto ->
+                System.out.println("Quantity requested:" +beerInventoryService)
+        );
+
+        if (showInventoryOnHand){
+            listOfBeersDto
+                    .forEach(beerDto ->
+                            beerDto.setQuantityOnHand(beerInventoryService.getOnHandInventory(beerDto.getId())));
+        }
+
         beerPagedList = new BeerPagedList(listOfBeersDto,
                 pageRequest,
                 beerPage.getTotalElements());
-
 
         return beerPagedList;
     }
