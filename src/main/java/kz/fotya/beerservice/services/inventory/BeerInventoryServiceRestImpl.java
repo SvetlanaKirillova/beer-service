@@ -31,10 +31,6 @@ public class BeerInventoryServiceRestImpl implements BeerInventoryService {
         this.restTemplate = restTemplateBuilder.basicAuthentication(inventoryUser, password).build();
     }
 
-//    public void setBeerInventoryServiceHost(String beerInventoryServiceHost) {
-//        this.beerInventoryServiceHost = beerInventoryServiceHost;
-//    }
-
     @Override
     public Integer getOnHandInventory(UUID beerId) {
         log.info("Calling Inventory Service..." + beerInventoryServiceHost);
